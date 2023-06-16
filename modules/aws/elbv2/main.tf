@@ -15,7 +15,7 @@ resource "aws_s3_bucket" "access_logging" {
   }
 
   logging {
-    target_bucket = "target-bucket"
+    target_bucket = "target-bucket" // replace to the bucket name that use for store log
   }
 
   versioning {
