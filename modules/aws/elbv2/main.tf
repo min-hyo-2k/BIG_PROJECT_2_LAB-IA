@@ -1,22 +1,52 @@
 resource "aws_s3_bucket" "access_logging" {
   bucket_prefix = var.name
-  acl    = "private"
+  acl           = "private"
   force_destroy = true
 
-  count =  1 
+  count = 1
+
+  server_side_encryption_configuration {
+    rule {
+      apply_server_side_encryption_by_default {
+        kms_master_key_id = "arn"
+        sse_algorithm     = "aws:kms"
+      }
+    }
+  }
+
+  logging {
+    target_bucket = "target-bucket" // replace to the bucket name that use for store log
+  }
+
+  versioning {
+    enabled = true
+  }
+
+}
+
+resource "aws_kms_key" "access_logging" {
+  enable_key_rotation = true
+}
+
+resource "aws_s3_bucket_public_access_block" "access_logging" {
+  bucket = aws_s3_bucket.access_logging[0].bucket_prefix
+
+  restrict_public_buckets = true
+  block_public_acls       = true
+  block_public_policy     = true
 }
 
 resource "aws_lb" "main" {
-  load_balancer_type = "application"
+  load_balancer_type         = "application"
   enable_deletion_protection = false
-  subnets = ["${var.main_subnet_id}","${var.secondary_subnet_id}"]
+  subnets                    = ["${var.main_subnet_id}", "${var.secondary_subnet_id}"]
 
   access_logs {
     bucket  = aws_s3_bucket.access_logging[0].bucket_prefix
     enabled = false
   }
 
-  count =  1 
+  count = 1
 }
 
 resource "aws_lb_target_group" "main" {
@@ -24,7 +54,7 @@ resource "aws_lb_target_group" "main" {
   protocol = "HTTP"
   vpc_id   = var.vpc_id
 
-  count =  1 
+  count = 1
 }
 
 resource "aws_iam_server_certificate" "main" {
@@ -36,14 +66,14 @@ resource "aws_iam_server_certificate" "main" {
     "${path.root}/static/example.key.pem",
   )
 
-  count =  1 
+  count = 1
 }
 
 resource "aws_lb_listener" "main" {
   load_balancer_arn = aws_lb.main[0].arn
   port              = "443"
   protocol          = "HTTPS"
-  ssl_policy        =  "ELBSecurityPolicy-TLS-1-0-2015-04" 
+  ssl_policy        = "ELBSecurityPolicy-TLS-1-0-2015-04"
   certificate_arn   = aws_iam_server_certificate.main[0].arn
 
   default_action {
@@ -51,5 +81,5 @@ resource "aws_lb_listener" "main" {
     target_group_arn = aws_lb_target_group.main[0].arn
   }
 
-  count =  1 
+  count = 1
 }
