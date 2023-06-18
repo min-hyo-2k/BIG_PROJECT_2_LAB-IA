@@ -13,12 +13,14 @@ resource "aws_db_instance" "main" {
   username             = "foo"
   password             = "foobarbaz"
   skip_final_snapshot = true
-
+  deletion_protection = true
+  iam_database_authentication_enabled = true
+  performance_insights_enabled = true
   auto_minor_version_upgrade =  false 
-  storage_encrypted          =  false 
-  backup_retention_period    =  0 
+  storage_encrypted          =  true 
+  backup_retention_period    =  5 
   multi_az =  false 
   db_subnet_group_name = aws_db_subnet_group.default[0].name
-  publicly_accessible = true
+  publicly_accessible = false
   count =  1 
 }
