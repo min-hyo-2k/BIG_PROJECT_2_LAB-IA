@@ -40,12 +40,12 @@ resource "aws_lb" "main" {
   load_balancer_type         = "application"
   enable_deletion_protection = false
   subnets                    = ["${var.main_subnet_id}", "${var.secondary_subnet_id}"]
-
+  internal = true
   access_logs {
     bucket  = aws_s3_bucket.access_logging[0].bucket_prefix
     enabled = false
   }
-
+  drop_invalid_header_fields = true
   count = 1
 }
 
@@ -73,7 +73,7 @@ resource "aws_lb_listener" "main" {
   load_balancer_arn = aws_lb.main[0].arn
   port              = "443"
   protocol          = "HTTPS"
-  ssl_policy        = "ELBSecurityPolicy-TLS-1-0-2015-04"
+  ssl_policy        = "ELBSecurityPolicy-TLS-1-1-2015-04"
   certificate_arn   = aws_iam_server_certificate.main[0].arn
 
   default_action {

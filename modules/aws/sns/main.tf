@@ -1,6 +1,6 @@
 resource "aws_sns_topic" "main" {
   name = var.name
-
+  kms_master_key_id = "/blah"
   count = 1
 }
 
