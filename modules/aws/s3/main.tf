@@ -46,6 +46,15 @@ resource "aws_s3_bucket" "logging" {
   count =  0 
 }
 
+resource "aws_s3_bucket_public_access_block" "public" {
+  bucket = aws_s3_bucket.main[0].id
+
+  block_public_acls    = true
+  block_public_policy  = true
+  ignore_public_acls   = true
+  restrict_public_buckets = true
+}
+
 data "aws_iam_policy_document" "force_ssl_only_access" {
   # Force SSL access
   statement {
@@ -107,6 +116,14 @@ resource "aws_s3_bucket" "getonly" {
   count = 1
 }
 
+resource "aws_s3_bucket_public_access_block" "getonly" {
+  bucket = aws_s3_bucket.getonly[0].id
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
 data "aws_iam_policy_document" "public" {
   statement {
     effect = "Allow"
@@ -131,4 +148,13 @@ resource "aws_s3_bucket" "public" {
   bucket_prefix = "sadcloudhetonlys3"
   force_destroy = true
   count = 1
+}
+
+  resource "aws_s3_bucket_public_access_block" "public" {
+  bucket = aws_s3_bucket.public[0].id
+
+  block_public_acls    = true
+  block_public_policy  = true
+  ignore_public_acls   = true
+  restrict_public_buckets = true
 }
