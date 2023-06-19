@@ -12,7 +12,13 @@ resource "aws_vpc" "main" {
     Name = "${var.name}_vpc"
   }
 }
-
+# create flow log
+resource "aws_flow_log" "vpc_flow_log" {
+  count         = 1
+  log_destination = aws_cloudwatch_log_group.vpc_flow_log.arn
+  traffic_type    = "ALL"
+  vpc_id          = aws_vpc.main[0].id
+}
 # grab AZs
 data "aws_availability_zones" "available" {
   state = "available"
@@ -25,11 +31,12 @@ resource "aws_subnet" "main" {
   cidr_block = "10.0.3.0/24"
   availability_zone = data.aws_availability_zones.available.names[0]
 
-  map_public_ip_on_launch = true
-
+  map_public_ip_on_launch = false
+  
   ipv6_cidr_block = cidrsubnet(aws_vpc.main[0].ipv6_cidr_block, 8, 1)
   assign_ipv6_address_on_creation = true
 
+  
   tags = {
     Name = "${var.name}_subnet"
   }
