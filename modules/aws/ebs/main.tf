@@ -1,13 +1,13 @@
 resource "aws_ebs_volume" "main" {
   availability_zone = "ap-southeast-1a"
   size              = 1
-  encrypted = false
-
+  encrypted = true
+  kms_key_id = aws_kms_key.ebs_encryption.arn
   count =  1 
 }
 
 resource "aws_ebs_encryption_by_default" "main" {
-  enabled = false
+  enabled = true
 
   count =  1 
 }
@@ -17,3 +17,6 @@ resource "aws_ebs_snapshot" "main_snapshot" {
 
   count =  1 
 }
+resource "aws_kms_key" "ebs_encryption" {
+    enable_key_rotation = true
+ }
