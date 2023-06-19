@@ -55,9 +55,10 @@ resource "aws_s3_bucket" "main" {
 resource "aws_s3_bucket_public_access_block" "main" {
   bucket = aws_s3_bucket.main[0].bucket_prefix
 
-  restrict_public_buckets = true
   block_public_acls       = true
   block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
 }
 
 resource "aws_s3_bucket" "logging" {
@@ -150,9 +151,10 @@ resource "aws_s3_bucket" "getonly" {
 resource "aws_s3_bucket_public_access_block" "getonly" {
   bucket = aws_s3_bucket.getonly[0].bucket_prefix
 
+  block_public_acls    = true
+  block_public_policy  = true
+  ignore_public_acls   = true
   restrict_public_buckets = true
-  block_public_acls       = true
-  block_public_policy     = true
 }
 
 data "aws_iam_policy_document" "public" {
@@ -202,7 +204,8 @@ resource "aws_s3_bucket" "public" {
 resource "aws_s3_bucket_public_access_block" "public" {
   bucket = aws_s3_bucket.public[0].bucket_prefix
 
+  block_public_acls    = true
+  block_public_policy  = true
+  ignore_public_acls   = true
   restrict_public_buckets = true
-  block_public_acls       = true
-  block_public_policy     = true
 }
