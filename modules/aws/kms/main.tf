@@ -1,13 +1,13 @@
 resource "aws_kms_key" "main" {
   description             = "sadcloud key"
-  enable_key_rotation = false
+  enable_key_rotation = true
   count =  1 
 }
 
 resource "aws_kms_alias" "main" {
   name          = "alias/unrotated"
   target_key_id = aws_kms_key.main[0].key_id
-
+  
   count =  1 
 }
 
