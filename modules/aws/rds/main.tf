@@ -16,6 +16,7 @@ resource "aws_db_instance" "main" {
   deletion_protection = true
   iam_database_authentication_enabled = true
   performance_insights_enabled = true
+  performance_insights_kms_key_id = "arn:aws:kms:us-west-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab"
   auto_minor_version_upgrade =  false 
   storage_encrypted          =  true 
   backup_retention_period    =  5 
