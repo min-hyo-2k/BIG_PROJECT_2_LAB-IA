@@ -50,6 +50,7 @@ resource "aws_s3_bucket" "main" {
     target_bucket = "target-bucket"
   }
 
+  count = 1
 }
 
 resource "aws_s3_bucket_public_access_block" "main" {
@@ -69,12 +70,12 @@ resource "aws_s3_bucket" "logging" {
   count = 0
 }
 
-resource "aws_s3_bucket_public_access_block" "public" {
+resource "aws_s3_bucket_public_access_block" "public_main" {
   bucket = aws_s3_bucket.main[0].id
 
-  block_public_acls    = true
-  block_public_policy  = true
-  ignore_public_acls   = true
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
   restrict_public_buckets = true
 }
 
@@ -93,8 +94,8 @@ data "aws_iam_policy_document" "force_ssl_only_access" {
     actions = ["s3:*"]
 
     resources = [
-      aws_s3_bucket.main.arn,
-      "${aws_s3_bucket.main.arn}/*",
+      aws_s3_bucket.main[0].arn,
+      "${aws_s3_bucket.main[0].arn}/*",
     ]
 
     condition {
@@ -158,16 +159,7 @@ resource "aws_s3_bucket" "getonly" {
 }
 
 resource "aws_s3_bucket_public_access_block" "getonly" {
-  bucket = aws_s3_bucket.getonly[0].bucket_prefix
-
-  block_public_acls    = true
-  block_public_policy  = true
-  ignore_public_acls   = true
-  restrict_public_buckets = true
-}
-
-resource "aws_s3_bucket_public_access_block" "getonly" {
-  bucket = aws_s3_bucket.getonly[0].id
+  bucket                  = aws_s3_bucket.getonly[0].id
   block_public_acls       = true
   block_public_policy     = true
   ignore_public_acls      = true
@@ -218,20 +210,11 @@ resource "aws_s3_bucket" "public" {
 
 }
 
-resource "aws_s3_bucket_public_access_block" "public" {
-  bucket = aws_s3_bucket.public[0].bucket_prefix
-
-  block_public_acls    = true
-  block_public_policy  = true
-  ignore_public_acls   = true
-  restrict_public_buckets = true
-}
-
-  resource "aws_s3_bucket_public_access_block" "public" {
+resource "aws_s3_bucket_public_access_block" "public_public" {
   bucket = aws_s3_bucket.public[0].id
 
-  block_public_acls    = true
-  block_public_policy  = true
-  ignore_public_acls   = true
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
   restrict_public_buckets = true
 }

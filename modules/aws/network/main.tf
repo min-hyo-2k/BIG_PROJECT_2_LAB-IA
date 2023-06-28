@@ -13,6 +13,15 @@ resource "aws_vpc" "main" {
   }
 }
 # create flow log
+resource "aws_cloudwatch_log_group" "vpc_flow_log" {
+  name = "vpc_flow_log"
+
+  tags = {
+    Environment = "production"
+    Application = "serviceA"
+  }
+}
+
 resource "aws_flow_log" "vpc_flow_log" {
   count         = 1
   log_destination = aws_cloudwatch_log_group.vpc_flow_log.arn

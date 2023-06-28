@@ -3,30 +3,30 @@ module "network" {
   source = "../modules/aws/network"
 }
 
-############## SERVICES ##############
+# ############## SERVICES ##############
 
-module "cloudtrail" {
-  source = "../modules/aws/cloudtrail"
-}
+# module "cloudtrail" {
+#   source = "../modules/aws/cloudtrail"
+# }
 
-module "cloudwatch" {
-  source = "../modules/aws/cloudwatch"
-}
+# module "cloudwatch" {
+#   source = "../modules/aws/cloudwatch"
+# }
 
-module "config" {
-  source = "../modules/aws/config"
-}
+# module "config" {
+#   source = "../modules/aws/config"
+# }
 
-module "ebs" {
-  source = "../modules/aws/ebs"
-}
+# module "ebs" {
+#   source = "../modules/aws/ebs"
+# }
 
-module "ec2" {
-  source = "../modules/aws/ec2"
+# module "ec2" {
+#   source = "../modules/aws/ec2"
 
-   main_subnet_id = module.network.main_subnet_id
-   vpc_id = module.network.vpc_id
-}
+#    main_subnet_id = module.network.main_subnet_id
+#    vpc_id = module.network.vpc_id
+# }
 
 module "elbv2" {
   source = "../modules/aws/elbv2"
@@ -36,28 +36,28 @@ module "elbv2" {
   vpc_id = module.network.vpc_id
 }
 
-module "iam" {
-  source = "../modules/aws/iam"
-}
+# module "iam" {
+#   source = "../modules/aws/iam"
+# }
 
-module "kms" {
-  source = "../modules/aws/kms"
-}
+# module "kms" {
+#   source = "../modules/aws/kms"
+# }
 
-module "rds" {
-  source = "../modules/aws/rds"
+# module "rds" {
+#   source = "../modules/aws/rds"
 
-  main_subnet_id = module.network.main_subnet_id
-  secondary_subnet_id = module.network.secondary_subnet_id
-}
+#   main_subnet_id = module.network.main_subnet_id
+#   secondary_subnet_id = module.network.secondary_subnet_id
+# }
 
-module "s3" {
-  source = "../modules/aws/s3"
-}
+# module "s3" {
+#   source = "../modules/aws/s3"
+# }
 
-module "ses" {
-  source = "../modules/aws/ses"
-}
+# module "ses" {
+#   source = "../modules/aws/ses"
+# }
 
 module "sns" {
   source = "../modules/aws/sns"
