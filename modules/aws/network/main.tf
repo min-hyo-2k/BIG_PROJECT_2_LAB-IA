@@ -15,7 +15,8 @@ resource "aws_vpc" "main" {
 # create flow log
 resource "aws_flow_log" "vpc_flow_log" {
   count         = 1
-  log_destination = aws_cloudwatch_log_group.vpc_flow_log.arn
+  log_destination = "arn:aws:s3:::s3-bucket-backend-2"
+  log_destination_type = "s3"
   traffic_type    = "ALL"
   vpc_id          = aws_vpc.main[0].id
 }
@@ -23,7 +24,6 @@ resource "aws_flow_log" "vpc_flow_log" {
 data "aws_availability_zones" "available" {
   state = "available"
 }
-
 # create subnet
 resource "aws_subnet" "main" {
   count = 1

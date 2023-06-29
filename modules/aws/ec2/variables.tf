@@ -8,10 +8,10 @@ variable "name" {
 
 variable "vpc_id" {
   description = "ID of created VPC"
-  default = "default_vpc_id"
+  default = "vpc-000af707fadc0e7f7"
 }
 
 variable "main_subnet_id" {
   description = "ID of created VPC"
-  default = "default_main_subnet_id"
+  default = "subnet-0f8ae5064737cab94"
 }
