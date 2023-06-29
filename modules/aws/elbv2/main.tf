@@ -1,50 +1,25 @@
-# resource "aws_s3_bucket" "access_logging" {
-#   bucket_prefix = var.name
-#   acl           = "private"
-#   force_destroy = true
-
-#   count = 1
-
-#   server_side_encryption_configuration {
-#     rule {
-#       apply_server_side_encryption_by_default {
-#         kms_master_key_id = "arn"
-#         sse_algorithm     = "aws:kms"
-#       }
-#     }
-#   }
-
-#   logging {
-#     target_bucket = "target-bucket" // replace to the bucket name that use for store log
-#   }
-
-#   versioning {
-#     enabled = true
-#   }
-
-# }
-
-module "s3_bucket" {
-  source = "terraform-aws-modules/s3-bucket/aws"
-
-  bucket        = "access-logging-elbv2"
+resource "aws_s3_bucket" "access_logging" {
+  bucket_prefix = var.name
   acl           = "private"
   force_destroy = true
 
-  control_object_ownership = true
-  object_ownership         = "ObjectWriter"
+  count = 1
 
-  versioning = {
-    enabled = true
-  }
-
-  server_side_encryption_configuration = {
-    rule = {
-      apply_server_side_encryption_by_default = {
-        kms_master_key_id = aws_kms_key.access_logging.id
+  server_side_encryption_configuration {
+    rule {
+      apply_server_side_encryption_by_default {
+        kms_master_key_id = aws_kms_key.access_logging.arn
         sse_algorithm     = "aws:kms"
       }
     }
+  }
+
+  logging {
+    target_bucket = "s3-bucket-backend-2" // replace to the bucket name that use for store log
+  }
+
+  versioning {
+    enabled = true
   }
 
 }
@@ -54,7 +29,7 @@ resource "aws_kms_key" "access_logging" {
 }
 
 resource "aws_s3_bucket_public_access_block" "access_logging" {
-  bucket                  = "access-logging-elbv2"
+  bucket                  = aws_s3_bucket.access_logging[0].id
   block_public_acls       = true
   block_public_policy     = true
   ignore_public_acls      = true
@@ -67,7 +42,7 @@ resource "aws_lb" "main" {
   subnets                    = ["${var.main_subnet_id}", "${var.secondary_subnet_id}"]
   internal                   = true
   access_logs {
-    bucket  = "access-logging-elbv2"
+    bucket  = aws_s3_bucket.access_logging[0].id
     enabled = false
   }
   drop_invalid_header_fields = true
