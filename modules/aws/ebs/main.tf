@@ -20,3 +20,7 @@ resource "aws_ebs_snapshot" "main_snapshot" {
 resource "aws_kms_key" "ebs_encryption" {
     enable_key_rotation = true
  }
+
+provider "aws" {
+  region = "ap-southeast-1"
+}
