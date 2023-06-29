@@ -8,14 +8,14 @@ resource "aws_s3_bucket" "access_logging" {
   server_side_encryption_configuration {
     rule {
       apply_server_side_encryption_by_default {
-        kms_master_key_id = "arn"
+        kms_master_key_id = aws_kms_key.access_logging.arn
         sse_algorithm     = "aws:kms"
       }
     }
   }
 
   logging {
-    target_bucket = "target-bucket" // replace to the bucket name that use for store log
+    target_bucket = "s3-bucket-backend-2" // replace to the bucket name that use for store log
   }
 
   versioning {
@@ -29,16 +29,7 @@ resource "aws_kms_key" "access_logging" {
 }
 
 resource "aws_s3_bucket_public_access_block" "access_logging" {
-  bucket = aws_s3_bucket.access_logging[0].bucket_prefix
-
-  block_public_acls       = true
-  block_public_policy     = true
-  ignore_public_acls      = true
-  restrict_public_buckets = true
-}
-
-resource "aws_s3_bucket_public_access_block" "access_logging" {
-  bucket = aws_s3_bucket.access_logging[0].id
+  bucket                  = aws_s3_bucket.access_logging[0].id
   block_public_acls       = true
   block_public_policy     = true
   ignore_public_acls      = true
@@ -49,13 +40,13 @@ resource "aws_lb" "main" {
   load_balancer_type         = "application"
   enable_deletion_protection = false
   subnets                    = ["${var.main_subnet_id}", "${var.secondary_subnet_id}"]
-  internal = true
+  internal                   = true
   access_logs {
-    bucket  = aws_s3_bucket.access_logging[0].bucket_prefix
+    bucket  = aws_s3_bucket.access_logging[0].id
     enabled = false
   }
   drop_invalid_header_fields = true
-  count = 1
+  count                      = 1
 }
 
 resource "aws_lb_target_group" "main" {
