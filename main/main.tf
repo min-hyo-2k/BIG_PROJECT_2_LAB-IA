@@ -1,9 +1,9 @@
-# Creates a single VPC with a subnet, internet gateway, and associated route table.
+# # Creates a single VPC with a subnet, internet gateway, and associated route table.
 module "network" {
   source = "../modules/aws/network"
 }
 
-############## SERVICES ##############
+# # ############## SERVICES ##############
 
 module "cloudtrail" {
   source = "../modules/aws/cloudtrail"
