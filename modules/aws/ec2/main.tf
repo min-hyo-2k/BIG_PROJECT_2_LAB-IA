@@ -25,7 +25,7 @@ resource "aws_instance" "main" {
   count         =  1 
   associate_public_ip_address = true
   
-  user_data = filebase64sha256("secret.txt")
+  # user_data = base64sha256(file("secret.txt"))
   root_block_device {
       encrypted = true
   }

@@ -31,7 +31,7 @@ resource "aws_iam_group_policy" "inline_group_policy" {
 
 resource "aws_iam_user" "inline_user" {
   name = "sadcloudInlineUser"
-
+  count = 1
 }
 
 resource "aws_iam_user_policy" "inline_user_policy" {
@@ -184,12 +184,12 @@ resource "aws_iam_group" "admin_not_indicated" {
 
   name = "sadcloud_superuser"
   path = "/"
-
+  count = 1
 
 }
 resource "aws_iam_group_policy" "mfa" {
 
-  group = aws_iam_group.admin_not_indicated.name
+  group = aws_iam_group.admin_not_indicated[0].name
   policy = jsonencode(
     {
       "Version" : "2012-10-17",

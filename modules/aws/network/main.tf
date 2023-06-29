@@ -20,6 +20,13 @@ resource "aws_cloudwatch_log_group" "vpc_flow_log" {
     Environment = "production"
     Application = "serviceA"
   }
+
+  kms_key_id = aws_kms_key.vpc_flow_log.arn
+}
+
+resource "aws_kms_key" "vpc_flow_log" {
+  description             = "vpc_flow_log 1"
+  enable_key_rotation = true
 }
 
 resource "aws_flow_log" "vpc_flow_log" {

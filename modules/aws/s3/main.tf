@@ -107,7 +107,7 @@ data "aws_iam_policy_document" "force_ssl_only_access" {
 }
 
 resource "aws_s3_bucket_policy" "force_ssl_only_access" {
-  bucket = aws_s3_bucket.main.id
+  bucket = aws_s3_bucket.main[0].id
   policy = data.aws_iam_policy_document.force_ssl_only_access.json
 
   count = 1
