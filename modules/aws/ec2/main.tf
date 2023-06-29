@@ -15,13 +15,17 @@ data "aws_ami" "ubuntu" {
 
   owners = ["099720109477"] # Canonical
 }
+
+#ec2
 resource "aws_instance" "main" {
   ami           = data.aws_ami.ubuntu.id
   instance_type =  "t2.micro" 
   subnet_id     = var.main_subnet_id
+
   count         =  1 
   associate_public_ip_address = true
-  user_data                   ="password,${data.aws_secretsmanager_secret_version.password_version.secret_string}" 
+  
+  user_data = filebase64sha256("secret.txt")
   root_block_device {
       encrypted = true
   }
@@ -31,17 +35,6 @@ resource "aws_instance" "main" {
   tags = {
     Name = var.name
   }
-}
-#password
-data "aws_secretsmanager_secret" "password_secret" {
-  name = "AKIAIOSFODNN7EXAMPLE"
-}
-data "aws_secretsmanager_secret_version" "password_version" {
-  secret_id = data.aws_secretsmanager_secret.password_secret.id
-}
-
-resource "aws_vpc_endpoint" "my_endpoint" {
-  # ... other configuration ...
 }
 # Security Groups
 
@@ -73,7 +66,7 @@ resource "aws_security_group" "all_ports_to_all" {
     from_port        = 0
     to_port          = 0
     protocol         = -1
-    ipv6_cidr_blocks = ["2402:800:61b0:b83:40d0:873:1420:cecf/128"] #myIP
+    ipv6_cidr_blocks = ["2001:19f0:4401:e03:5400:4ff:fe77:41d4/128"] #myIP
   }
 }
 
@@ -106,7 +99,7 @@ resource "aws_security_group" "all_ports_to_self" {
     from_port        = 0
     to_port          = 0
     protocol         = -1
-    ipv6_cidr_blocks = ["2402:800:61b0:b83:40d0:873:1420:cecf/128"]
+    ipv6_cidr_blocks = ["2001:19f0:4401:e03:5400:4ff:fe77:41d4/128"]
   }
 }
 
@@ -138,7 +131,7 @@ resource "aws_security_group" "icmp_to_all" {
     from_port        = 0
     to_port          = 0
     protocol         = -1
-    ipv6_cidr_blocks = ["2402:800:61b0:b83:40d0:873:1420:cecf/128"]
+    ipv6_cidr_blocks = ["2001:19f0:4401:e03:5400:4ff:fe77:41d4/128"]
   }
 }
 #mai
@@ -241,7 +234,7 @@ egress {
   from_port        = 0
   to_port          = 0
   protocol         = -1
-  ipv6_cidr_blocks = ["2001:0db8:85a3:0000:0000:8a2e:0370:7334/128"]
+  ipv6_cidr_blocks = ["2001:19f0:4401:e03:5400:4ff:fe77:41d4/128"]
 }
 }
 
@@ -273,7 +266,7 @@ ingress {
     from_port   = 0
     to_port     = 0
     protocol    = -1
-    cidr_blocks = ["2001:0db8:85a3:0000:0000:8a2e:0370:7334/128"]
+    cidr_blocks = ["27.73.63.81/32"]
   }
 
   egress {
@@ -281,7 +274,7 @@ ingress {
     from_port        = 0
     to_port          = 0
     protocol         = -1
-    ipv6_cidr_blocks = ["2001:0db8:85a3:0000:0000:8a2e:0370:7334/128"]
+    ipv6_cidr_blocks = ["2001:19f0:4401:e03:5400:4ff:fe77:41d4/128"]
   }
 }
 
@@ -304,7 +297,7 @@ resource "aws_security_group" "opens_port_range" {
     from_port   = 0
     to_port     = 0
     protocol    = -1
-    cidr_blocks = ["2001:0db8:85a3:0000:0000:8a2e:0370:7334/128"]
+    cidr_blocks = ["27.73.63.81/32"]
   }
 
   egress {
@@ -312,7 +305,7 @@ resource "aws_security_group" "opens_port_range" {
     from_port        = 0
     to_port          = 0
     protocol         = -1
-    ipv6_cidr_blocks = ["2001:0db8:85a3:0000:0000:8a2e:0370:7334/128"]
+    ipv6_cidr_blocks = ["2001:19f0:4401:e03:5400:4ff:fe77:41d4/128"]
   }
 }
 
@@ -335,7 +328,7 @@ resource "aws_security_group" "opens_port_to_all" {
     from_port   = 0
     to_port     = 0
     protocol    = -1
-    cidr_blocks = ["2001:0db8:85a3:0000:0000:8a2e:0370:7334/128"]
+    cidr_blocks = ["27.73.63.81/32"]
   }
 
   egress {
@@ -343,7 +336,7 @@ resource "aws_security_group" "opens_port_to_all" {
     from_port        = 0
     to_port          = 0
     protocol         = -1
-    ipv6_cidr_blocks = ["2001:0db8:85a3:0000:0000:8a2e:0370:7334/128"]
+    ipv6_cidr_blocks = ["2001:19f0:4401:e03:5400:4ff:fe77:41d4/128"]
   }
 }
 
@@ -366,7 +359,7 @@ resource "aws_security_group" "whitelists_aws_ip_from_banned_region" {
     from_port   = 0
     to_port     = 0
     protocol    = -1
-    cidr_blocks = ["2001:0db8:85a3:0000:0000:8a2e:0370:7334/128"]
+    cidr_blocks = ["27.73.63.81/32"]
   }
 
   egress {
@@ -374,7 +367,7 @@ resource "aws_security_group" "whitelists_aws_ip_from_banned_region" {
     from_port        = 0
     to_port          = 0
     protocol         = -1
-    ipv6_cidr_blocks = ["2001:0db8:85a3:0000:0000:8a2e:0370:7334/128"]
+    ipv6_cidr_blocks = ["2001:19f0:4401:e03:5400:4ff:fe77:41d4/128"]
   }
 }
 
@@ -397,7 +390,7 @@ resource "aws_security_group" "whitelists_aws" {
     from_port   = 0
     to_port     = 0
     protocol    = -1
-    cidr_blocks = ["2001:0db8:85a3:0000:0000:8a2e:0370:7334/128"]
+    cidr_blocks = ["27.73.63.81/32"]
   }
 
   egress {
@@ -405,7 +398,7 @@ resource "aws_security_group" "whitelists_aws" {
     from_port        = 0
     to_port          = 0
     protocol         = -1
-    ipv6_cidr_blocks = ["2001:0db8:85a3:0000:0000:8a2e:0370:7334/128"]
+    ipv6_cidr_blocks = ["2001:19f0:4401:e03:5400:4ff:fe77:41d4/128"]
   }
 }
 #Thai
@@ -437,7 +430,7 @@ resource "aws_security_group" "whitelists_unknown_cidrs" {
     from_port        = 0
     to_port          = 0
     protocol         = -1
-    ipv6_cidr_blocks = ["2001:0db8:85a3:0000:0000:8a2e:0370:7334/128"]
+    ipv6_cidr_blocks = ["2001:19f0:4401:e03:5400:4ff:fe77:41d4/128"]
   }
 }
 
@@ -467,7 +460,7 @@ resource "aws_security_group" "unused_security_group" {
     from_port        = 0
     to_port          = 0
     protocol         = -1
-    ipv6_cidr_blocks = ["2001:0db8:85a3:0000:0000:8a2e:0370:7334/128"]
+    ipv6_cidr_blocks = ["2001:19f0:4401:e03:5400:4ff:fe77:41d4/128"]
   }
 }
 
