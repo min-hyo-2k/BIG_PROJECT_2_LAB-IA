@@ -1,15 +1,27 @@
+module "iam_account" {
+  source  = "terraform-aws-modules/iam/aws//modules/iam-account"
+
+  account_alias = "awesome-company"
+
+  minimum_password_length = 14
+  require_numbers         = true 
+  require_lowercase_characters   = true 
+  require_uppercase_characters   = true
+  require_symbols                = true
+  password_reuse_prevention      =  6
+  max_password_age =  30 
+}
 resource "aws_iam_group" "inline_group" {
   name = "sadcloudInlineGroup"
-
   count =  1 
 }
 
 resource "aws_iam_group_policy" "inline_group_policy" {
-    group = aws_iam_group.inline_group[0].id
+    group = aws_iam_group.inline_group[0].name
 
     count =  1 
 
-    policy = <<EOF
+    policy = jsonencode(
 {
   "Version": "2012-10-17",
   "Statement": [
@@ -18,43 +30,57 @@ resource "aws_iam_group_policy" "inline_group_policy" {
         "ec2:*"
       ],
       "Effect": "Allow",
-      "Resource": "*"
+      "Resource": "*",
+      "Condition": {
+          "BoolIfExists": {
+            "aws:MultiFactorAuthPresent": "true"
+          }
+      }
     }
   ]
 }
-EOF
+    )
 }
 
-# resource "aws_iam_user" "inline_user" {
-#   name = "sadcloudInlineUser"
+module "iam_user" {
+  source  = "terraform-aws-modules/iam/aws//modules/iam-user"
 
-#   count = 1
-# }
+  name          = "minhpthe150552"
+  force_destroy = true
 
-# resource "aws_iam_user_policy" "inline_user_policy" {
-#   user = aws_iam_user.inline_user[0].name
+  pgp_key = "keybase:test"
 
-#   count =  1 
+  password_reset_required = true
+}
 
-#   policy = <<EOF
-# {
-#   "Version": "2012-10-17",
-#   "Statement": [
-#     {
-#       "NotAction": "s3:DeleteBucket",
-#       "Effect": "Allow",
-#       "Resource": "*"
-#     }
-#   ]
-# }
-# EOF
-# }
+resource "aws_iam_user_policy" "inline_user_policy" {
+   user   = module.iam_user.iam_user_name
+   count =  1 
+
+   policy = jsonencode(
+ {
+   "Version": "2012-10-17",
+   "Statement": [
+     {
+       "NotAction": "s3:DeleteBucket",
+       "Effect": "Allow",
+       "Resource": "*",
+       "Condition": {
+          "BoolIfExists": {
+            "aws:MultiFactorAuthPresent": "true"
+          }
+      }
+     }
+   ]
+ }
+   )
+}
 
 resource "aws_iam_role" "inline_role" {
 
   count =  1 
 
-  assume_role_policy = <<EOF
+  assume_role_policy = jsonencode(
 {
   "Version": "2012-10-17",
   "Statement": [
@@ -64,21 +90,39 @@ resource "aws_iam_role" "inline_role" {
         "Service": "ec2.amazonaws.com"
       },
       "Effect": "Allow",
-      "Sid": ""
+      "Sid": "",
+      "Condition": {
+          "BoolIfExists": {
+            "aws:MultiFactorAuthPresent": "true"
+          }
+      }
     }
   ]
 }
-EOF
+  )
 }
+module "iam_assumable_role" {
+  source  = "terraform-aws-modules/iam/aws//modules/iam-assumable-role"
+  
+  trusted_role_arns = [
+    "arn:aws:iam::809868205509:user/minhpthe150552"
+  ]
+
+  create_role = true
+
+  role_name         = "inline_user_role"
+  role_requires_mfa = true
+}
+
 
 resource "aws_iam_role_policy" "inline_role_policy" {
   name = "inline-role-policy"
-  role = aws_iam_role.inline_role[0].id
+  role = module.iam_assumable_role.iam_role_name
 
   count =  1 
 
 
-  policy = <<EOF
+  policy = jsonencode(
 {
   "Version": "2012-10-17",
   "Statement": [
@@ -87,49 +131,28 @@ resource "aws_iam_role_policy" "inline_role_policy" {
         "ec2:Describe*"
       ],
       "Effect": "Allow",
-      "Resource": "*"
-    }
-  ]
-}
-EOF
-}
-
-resource "aws_iam_role" "allow_all_and_no_mfa" {
-
-  count =  1 
-
-  assume_role_policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Action": "sts:AssumeRole",
-      "Principal": {
-        "AWS": "*"
-      },
-      "Effect": "Allow",
-      "Sid": "",
+      "Resource": "*",
       "Condition": {
-        "BoolIfExists": {
-          "aws:MultiFactorAuthPresent": "false"
-        }
+          "BoolIfExists": {
+            "aws:MultiFactorAuthPresent": "true"
+          }
       }
     }
   ]
 }
-EOF
+  )
 }
 
 resource "aws_iam_account_password_policy" "main" {
   count =  1 
 
-  minimum_password_length        =  6
-  require_lowercase_characters   = false
-  require_numbers                = false
-  require_uppercase_characters   = false
-  require_symbols                = false
-  password_reuse_prevention      =  0
-  max_password_age =  0 
+  minimum_password_length        =  14
+  require_lowercase_characters   = true 
+  require_numbers                = true
+  require_uppercase_characters   = true
+  require_symbols                = true
+  password_reuse_prevention      =  6
+  max_password_age =  30 
 }
 
 resource "aws_iam_policy" "policy" {
@@ -138,47 +161,89 @@ resource "aws_iam_policy" "policy" {
   name_prefix = "wildcard_IAM_policy"
   path        = "/"
 
-  policy = <<EOF
+  policy = jsonencode(
 {
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Action": "*",
+      "Action": [
+      "ec2:DescribeInstances","ec2:DescribeImages","ec2:DescribeVpcs","ec2:DescribeSubnets",
+      "ec2:DescribeSubnets","ec2:DescribeRouteTables",
+      "ec2:DescribeInternetGateways","ec2:DescribeNetworkAcls",
+      "s3:ListBucket","s3:GetObject","s3:GetBucketLocation",
+      "s3:GetBucketPolicy","s3:GetBucketAcl"
+      ],
       "Effect": "Allow",
-      "Resource": "*"
+      "Resource": [
+          "arn:aws:s3:::",
+          "arn:aws:ec2:ap-southeast-1:minhpthe150552"
+        ]
     }
   ]
 }
-EOF
+  )
 }
 
 resource "aws_iam_group" "admin_not_indicated" {
-  count =  1 
+  
 
   name = "sadcloud_superuser"
   path = "/"
+  
+  count = 1
 }
+resource aws_iam_group_policy mfa {
 
-
-
+    group = aws_iam_group.admin_not_indicated[0].name
+    policy = jsonencode(
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "",
+      "Effect": "Allow",
+      "Action": [
+      "ec2:DescribeInstances","ec2:DescribeImages","ec2:DescribeVpcs","ec2:DescribeSubnets",
+      "ec2:DescribeSecurityGroups","ec2:DescribeKeyPairs","ec2:DescribeSubnets","ec2:DescribeRouteTables",
+      "ec2:DescribeInternetGateways","ec2:DescribeNetworkAcls",
+      "s3:ListBucket","s3:GetObject","s3:GetBucketLocation",
+      "s3:GetBucketPolicy","s3:GetBucketAcl"
+      ],
+      "Resource": [
+          "arn:aws:s3:::",
+          "arn:aws:ec2:ap-southeast-1:minhpthe150552"
+        ],
+      "Condition": {
+          "Bool": {
+              "aws:MultiFactorAuthPresent": "true"
+          }
+      }
+    }
+  ]
+}
+    )
+}
 resource "aws_iam_policy" "admin_not_indicated_policy" {
   count =  1 
 
 
   name  = "sadcloud_superuser_policy"
 
-  policy = <<EOF
+  policy = jsonencode(
 {
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Action": "*",
+      "Action": ["ec2:Describe","s3:ListBucket"],
       "Effect": "Allow",
-      "Resource": "*"
+      "Resource": [
+          "arn:aws:s3:::",
+          "arn:aws:ec2:ap-southeast-1:minhpthe150552"
+        ]
     }
   ]
 }
-EOF
+  )
 }
 
 resource "aws_iam_group_policy_attachment" "admin_not_indicated_policy-attach" {
