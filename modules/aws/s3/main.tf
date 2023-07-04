@@ -1,10 +1,10 @@
-resource "aws_s3_bucket" "main" {
+/* resource "aws_s3_bucket" "main" {
   bucket_prefix = var.name
-  acl    = "private"
+  acl           = "private"
   force_destroy = true
 
   dynamic "server_side_encryption_configuration" {
-    for_each =  [] 
+    for_each = []
 
     content {
       rule {
@@ -16,7 +16,7 @@ resource "aws_s3_bucket" "main" {
   }
 
   dynamic "logging" {
-    for_each =  [] 
+    for_each = []
 
     content {
       target_bucket = aws_s3_bucket.logging[0].id
@@ -25,27 +25,92 @@ resource "aws_s3_bucket" "main" {
   }
 
   versioning {
-      enabled =  false 
-      mfa_delete = false
+    enabled    = true
+    mfa_delete = false
   }
 
   dynamic "website" {
-    for_each =  [] 
+    for_each = []
 
     content {
       index_document = "index.html"
     }
   }
+
+  server_side_encryption_configuration {
+    rule {
+      apply_server_side_encryption_by_default {
+        kms_master_key_id = "arn"
+        sse_algorithm     = "aws:kms"
+      }
+    }
+  }
+
+  logging {
+    target_bucket = "target-bucket"
+  }
+
 }
+ */
+ module "s3_bucket" {
+  source = "./modules/aws/s3"
+  version = "3.14.0"
+  bucket = "main"
+  acl    = "private"
+
+  control_object_ownership = true
+  object_ownership         = "ObjectWriter"
+
+  versioning = {
+    enabled =  false
+    mfa_delete = false
+  }
+
+  server_side_encryption_configuration = {
+    rule = {
+      apply_server_side_encryption_by_default = {
+        sse_algorithm = "AES256"
+        kms_master_key_id = "arn"
+      }
+    }
+  }
+
+  logging = {
+    target_bucket = aws_s3_bucket.logging[0].id
+    target_prefix = "log/"
+  }
+  website = {
+    index_document = "index.html"
+  }
+
+}
+
+/* resource "aws_s3_bucket_public_access_block" "main" {
+  bucket = aws_s3_bucket.main[0].bucket_prefix
+
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+} */
 
 resource "aws_s3_bucket" "logging" {
   bucket_prefix = var.name
-  acl    = var.bucket_acl
+  acl           = var.bucket_acl
   force_destroy = true
 
-  count =  0 
+  count = 0
 }
 
+/* resource "aws_s3_bucket_public_access_block" "public" {
+  bucket = aws_s3_bucket.main[0].id
+
+  block_public_acls    = true
+  block_public_policy  = true
+  ignore_public_acls   = true
+  restrict_public_buckets = true
+}
+ */
 data "aws_iam_policy_document" "force_ssl_only_access" {
   # Force SSL access
   statement {
@@ -73,13 +138,19 @@ data "aws_iam_policy_document" "force_ssl_only_access" {
   }
 }
 
-resource "aws_s3_bucket_policy" "force_ssl_only_access" {
+/* resource "aws_s3_bucket_policy" "force_ssl_only_access" {
   bucket = aws_s3_bucket.main.id
   policy = data.aws_iam_policy_document.force_ssl_only_access.json
 
-  count = 1 
-}
+  count = 1
+} */
 
+module "aws_s3_bucket_policy" {
+  bucket = aws_s3_bucket.main.id
+  policy = data.aws_iam_policy_document.force_ssl_only_access.json
+
+  count = 1
+}
 data "aws_iam_policy_document" "getonly" {
   statement {
     effect = "Allow"
@@ -105,7 +176,33 @@ resource "aws_s3_bucket" "getonly" {
   force_destroy = true
 
   count = 1
+
+  server_side_encryption_configuration {
+    rule {
+      apply_server_side_encryption_by_default {
+        kms_master_key_id = "arn"
+        sse_algorithm     = "aws:kms"
+      }
+    }
+  }
+
+  logging {
+    target_bucket = "target-bucket"
+  }
+
+  versioning {
+    enabled = true
+  }
+
 }
+
+/* resource "aws_s3_bucket_public_access_block" "getonly" {
+  bucket = aws_s3_bucket.getonly[0].id
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+} */
 
 data "aws_iam_policy_document" "public" {
   statement {
@@ -130,5 +227,41 @@ data "aws_iam_policy_document" "public" {
 resource "aws_s3_bucket" "public" {
   bucket_prefix = "sadcloudhetonlys3"
   force_destroy = true
-  count = 1
+  count         = 1
+
+  server_side_encryption_configuration {
+    rule {
+      apply_server_side_encryption_by_default {
+        kms_master_key_id = "arn"
+        sse_algorithm     = "aws:kms"
+      }
+    }
+  }
+
+  logging {
+    target_bucket = "target-bucket"
+  }
+
+  versioning {
+    enabled = true
+  }
+
 }
+
+/* resource "aws_s3_bucket_public_access_block" "public" {
+  bucket = aws_s3_bucket.public[0].bucket_prefix
+
+  block_public_acls    = true
+  block_public_policy  = true
+  ignore_public_acls   = true
+  restrict_public_buckets = true
+}
+
+  resource "aws_s3_bucket_public_access_block" "public" {
+  bucket = aws_s3_bucket.public[0].id
+
+  block_public_acls    = true
+  block_public_policy  = true
+  ignore_public_acls   = true
+  restrict_public_buckets = true
+} */
